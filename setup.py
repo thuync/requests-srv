@@ -8,7 +8,7 @@ setuptools.setup(
     py_modules=["requests_srv"],
     author=u"Paweł Stiasny",
     author_email="pawelstiasny@gmail.com",
-    url="http://github.com/pstiasny/requests-srv",
+    url="http://github.com/thuync/requests-srv",
     license="Apache 2.0",
     description="A wrapper for Requests supporting DNS SRV records.",
     keywords=['requests'],

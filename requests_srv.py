@@ -1,7 +1,7 @@
 from urlparse import urlparse, urlunparse
 
-import dns.resolver
-import dns.exception
+from dns.resolver import Resolver
+from dns.exception import DNSException
 from requests import Session, ConnectionError
 from requests.adapters import HTTPAdapter
 
@@ -10,7 +10,7 @@ class SRVResolverHTTPAdapter(HTTPAdapter):
     def __init__(self, dns_hosts=None, dns_port=None, **kwargs):
         self.dns_hosts = dns_hosts
         self.dns_port = dns_port
-        self.resolver = dns.resolver.Resolver()
+        self.resolver = Resolver()
         if dns_hosts is not None:
             self.resolver.nameservers = dns_hosts
         if dns_port is not None:
@@ -19,9 +19,9 @@ class SRVResolverHTTPAdapter(HTTPAdapter):
 
     def get_connection(self, url, proxies=None):
         parsed = urlparse(url)
-        host, port = self.__resolve(parsed.netloc)
+        host, port = self._resolve_srv(parsed.netloc)
         redirected_url = urlunparse((
-            parsed.scheme,
+            resolve_scheme(parsed.scheme),
             '%s:%d' % (host, port),
             parsed.path,
             parsed.params,
@@ -30,27 +30,67 @@ class SRVResolverHTTPAdapter(HTTPAdapter):
         ))
         return super(SRVResolverHTTPAdapter, self).get_connection(redirected_url, proxies=proxies)
 
-    def __resolve(self, service):
+    def _resolve_srv(self, service):
         try:
             answers = self.resolver.query(service, 'SRV')
-        except dns.exception.DNSException as e:
+        except DNSException as e:
             raise ConnectionError('DNS error: ' + e.__class__.__name__)
         return answers[0].target, answers[0].port
 
-session = Session()
-session.mount('http://_', SRVResolverHTTPAdapter())
-session.mount('https://_', SRVResolverHTTPAdapter())
 
-request = session.request
-head = session.head
-get = session.get
-post = session.post
-put = session.put
-patch = session.patch
-delete = session.delete
+def request(method, url, **kwargs):
+    with Session() as session:
+        resolve_srv(session)
+        return session.request(method=method, url=url, **kwargs)
 
 
-if __name__ == '__main__':
-    from sys import argv
-    response = get(argv[1])
-    print response.text
+def get(url, params=None, **kwargs):
+    kwargs.setdefault('allow_redirects', True)
+    return request('get', url, params=params, **kwargs)
+
+
+def post(url, data=None, json=None, **kwargs):
+    return request('post', url, data=data, json=json, **kwargs)
+
+
+def patch(url, data=None, **kwargs):
+    return request('patch', url, data=data, **kwargs)
+
+
+def head(url, **kwargs):
+    kwargs.setdefault('allow_redirects', False)
+    return request('head', url, **kwargs)
+
+
+def delete(url, **kwargs):
+    return request('delete', url, **kwargs)
+
+
+def put(url, data=None, **kwargs):
+    return request('put', url, data=data, **kwargs)
+
+
+def options(url, **kwargs):
+    kwargs.setdefault('allow_redirects', True)
+    return request('options', url, **kwargs)
+
+
+def resolve_scheme(origin_scheme):
+    if 'https' in origin_scheme:
+        return 'https'
+    elif 'http' in origin_scheme:
+        return 'http'
+
+    return origin_scheme
+
+
+def resolve_srv(session, prefix='srv+', **kwargs):
+    """
+
+    :param prefix:
+    :type prefix: str
+    :param session:
+    :type session: Session
+    :return:
+    """
+    session.mount(prefix, SRVResolverHTTPAdapter(**kwargs))
