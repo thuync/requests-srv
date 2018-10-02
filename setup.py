@@ -4,7 +4,7 @@ import setuptools
 
 setuptools.setup(
     name="requests_srv",
-    version="0.0.3",
+    version="0.0.4",
     py_modules=["requests_srv"],
     author=u"Paweł Stiasny",
     author_email="pawelstiasny@gmail.com",
