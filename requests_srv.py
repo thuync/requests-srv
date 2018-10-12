@@ -40,7 +40,8 @@ class SRVResolverHTTPAdapter(HTTPAdapter):
 
 def request(method, url, **kwargs):
     with Session() as session:
-        resolve_srv(session)
+        resolve_srv(session, prefix='http+srv')
+        resolve_srv(session, prefix='https+srv')
         return session.request(method=method, url=url, **kwargs)
 
 
