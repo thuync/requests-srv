@@ -1,8 +1,10 @@
-from urlparse import urlparse, urlunparse
+from urlparse import urlparse
+from urlparse import urlunparse
 
-from dns.resolver import Resolver
 from dns.exception import DNSException
-from requests import Session, ConnectionError
+from dns.resolver import Resolver
+from requests import ConnectionError
+from requests import Session as _Session
 from requests.adapters import HTTPAdapter
 
 
@@ -95,3 +97,11 @@ def resolve_srv(session, prefix='srv+', **kwargs):
     :return:
     """
     session.mount(prefix, SRVResolverHTTPAdapter(**kwargs))
+
+
+def Session():
+    session = _Session()
+    resolve_srv(session, prefix='http+srv')
+    resolve_srv(session, prefix='https+srv')
+
+    return session
