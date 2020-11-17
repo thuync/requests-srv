@@ -1,5 +1,5 @@
-from urlparse import urlparse
-from urlparse import urlunparse
+from urllib.parse import urlparse
+from urllib.parse import urlunparse
 
 from dns.exception import DNSException
 from dns.resolver import Resolver

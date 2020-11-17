@@ -4,7 +4,7 @@ import setuptools
 
 setuptools.setup(
     name="requests_srv",
-    version="0.0.8",
+    version="0.0.9",
     py_modules=["requests_srv"],
     author=u"Paweł Stiasny",
     author_email="pawelstiasny@gmail.com",
@@ -16,8 +16,8 @@ setuptools.setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.7',
     ],
     install_requires=[
         'requests',
